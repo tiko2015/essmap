@@ -1,0 +1,62 @@
+@use '@angular/material'as mat;
+
+mat-card {
+  @include mat.elevation(1);
+}
+
+.card {
+  overflow: hidden;
+  word-break: break-word;
+  opacity: 0.9;
+}
+
+.card-wrapper {
+  padding-top: 10px;
+
+  &.active .card {
+    @include mat.elevation(8);
+    opacity: 1;
+  }
+}
+
+.header-image {
+  background-size: cover;
+
+  &.cooperativa {
+    background-image: url('/assets/icon/icon_cooperativa.png');
+  }
+
+  &.ferias_espacios {
+    background-image: url('/assets/icon/icon_ferias_espacios.png');
+  }
+
+  &.medios {
+    background-image: url('/assets/icon/icon_medios.png');
+  }
+
+  &.universidades {
+    background-image: url('/assets/icon/icon_universidades.png');
+  }
+
+  &.chasqui {
+    background-image: url('/assets/icon/icon_chasqui.png');
+  }
+}
+
+mat-card-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+h5 {
+  margin-bottom: 0;
+}
+
+.card-image {
+  padding: 16px;
+  display: block;
+}
+
+mat-card-actions {
+  justify-content: space-between;
+}

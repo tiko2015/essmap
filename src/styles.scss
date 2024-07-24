@@ -1,0 +1,11 @@
+@use '@angular/material' as mat;
+
+html {
+  --mdc-elevated-card-container-shape: 15px;
+  --mdc-outlined-card-container-shape: 15px;
+  --mdc-protected-button-container-shape: 19px;
+}
+
+body {
+  overflow-x: hidden;
+}

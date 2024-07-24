@@ -1,0 +1,50 @@
+<div class="map" leaflet [leafletOptions]="options" [leafletLayers]="layers" [(leafletCenter)]="options.center"
+  [(leafletZoom)]="options.zoom" (leafletCenterChange)="centerChange()">
+</div>
+<form autocomplete="off" #searchForm="ngForm" (ngSubmit)="verListado(false)" (ngSubmit)="filterOrganizations()">
+  <div class="form-content">
+    <div class="form-content-search">
+      <label for="search"><img srcset="../assets/isologo.png" /></label>
+      <input id="search" class="form-search" type="text" [(ngModel)]="filters.nombre" name="nombre"
+        (ngModelChange)="verListado(true)" (ngModelChange)="filterOrganizations()" (focus)="verListado(true)">
+      <button type="submit" mat-icon-button class="form-submit"><mat-icon>search</mat-icon></button>
+    </div>
+    <mat-chip-listbox aria-label="Tipo de organización">
+      @for (chip of tipos; track chip) {
+      <mat-chip-option (click)="setTipo(chip.key)" [selected]="filters.tipo === chip.key"
+        [class]="chip.key">{{chip.name}}</mat-chip-option>
+      }
+    </mat-chip-listbox>
+  </div>
+
+
+
+  <button (click)="getUserLocation()" mat-icon-button
+    class="form-location"><mat-icon>location_searching</mat-icon></button>
+</form>
+@if (reload) { <button (click)="reloadOnClick()" mat-raised-button class="form-reload">Buscar en esta área</button> }
+<button class="list-arrow" color="primary" mat-icon-button [class.open]="listadoActivo" (click)="verListado()">
+  @if(listadoActivo){<mat-icon>chevron_right</mat-icon>}
+  @else{<mat-icon>chevron_left</mat-icon>}
+</button>
+<div class="list" (click)="verListado(true)" [class.open]="listadoActivo">
+  <div class="list-content">
+    <mat-card class="list-title">
+      <mat-card-content>
+        @if (filters.nombre !== '') {
+        <h2>Resultados para: <em>{{filters.nombre}}</em></h2>
+        }
+        @if(filterTotal > 0) {
+        <h5>{{ filterTotal}} resultados</h5>
+        }
+        @else {
+        <h5>No se encontraron resultados</h5>
+        }
+      </mat-card-content>
+    </mat-card>
+    @for (organization of filteredOrganizations; track $index) {
+    <app-card (centerMap)="centerMap($event)" [entidad]="organization.node"
+      [provincia]="getProvincia(organization.node.provincia)" [anchor]="anchor" />
+    }
+  </div>
+</div>

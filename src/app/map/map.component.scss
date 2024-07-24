@@ -1,0 +1,117 @@
+@use '@angular/material' as mat;
+@import "../../breakpoints";
+
+form {
+  display: flex;
+  position:fixed;
+  right: 30px;
+  top: 10px;
+  left: 10px;
+  @include lg {
+    right: 340px;
+  }
+  label {
+    display: block;
+    left: 12px;
+    top: 6px;
+    width: 25px;
+    position: absolute;
+    img {
+      width: 100%;
+    }
+  }
+  .form-content-search {
+    font-size: 16px;
+    display: block;
+    border-radius: 25px;
+    background: #fff;
+    border: 1px solid #fff;
+    padding: 14px 40px;
+    margin-bottom: 5px;
+    width: 100%;
+    position: relative;
+    @include mat.elevation(1);
+    &:focus {
+      outline: none;
+      @include mat.elevation(4);
+    }
+  }
+  .form-search {
+    width: calc(100% - 25px);
+    font-size: 16px;
+    border: 1px solid #fff;
+    &:focus-visible {
+      outline: none;
+    }
+  }
+  .form-submit {
+    position: absolute;
+    right: 1px;
+    top: 1px;
+  }
+  .form-location {
+    background-color: #fff;
+    margin-left: 90px;
+    @include mat.elevation(1);
+  }
+}
+
+.form-reload {
+  position:fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  @include mat.elevation(1);
+  &:hover {
+    @include mat.elevation(4);
+  }
+}
+
+.map {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.list {
+  position:absolute;
+  right: 0;
+  top: 0;
+  width: 0;
+  transition: width 500ms;
+  overflow: auto;
+  @include lg {
+    width: 340px;
+  }
+  &.open {
+    width: 340px;
+  }
+  .list-content {
+    width: 320px;
+    margin: 0 10px;
+  }
+}
+
+.list-title {
+  position: relative;
+  top: -20px;
+  padding-top: 20px;
+  background: rgba(103, 58, 183, 0.8);
+  color: #fff;
+}
+
+.list-arrow {
+  position: fixed;
+  background-color: #fff;
+  bottom: 10px;
+  right: 10px;
+  @include mat.elevation(1);
+  transition: right 500ms;
+  &.open {
+    right: 340px;
+  }
+  @include lg {
+    display: none;
+  }
+}
