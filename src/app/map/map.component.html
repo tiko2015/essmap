@@ -10,9 +10,12 @@
       <button type="submit" mat-icon-button class="form-submit"><mat-icon>search</mat-icon></button>
     </div>
     <mat-chip-listbox aria-label="Tipo de organización">
+      <mat-chip-option (click)="setTipo('todos')" [selected]="filters.tipo === 'todos'"
+        [class]="filters.tipo">Todos</mat-chip-option>
+
       @for (chip of tipos; track chip) {
-      <mat-chip-option (click)="setTipo(chip.key)" [selected]="filters.tipo === chip.key"
-        [class]="chip.key">{{chip.name}}</mat-chip-option>
+      <mat-chip-option (click)="setTipo(chip.id)" [selected]="filters.tipo === chip.id"
+        [class]="chip.id">{{chip.name}}</mat-chip-option>
       }
     </mat-chip-listbox>
   </div>

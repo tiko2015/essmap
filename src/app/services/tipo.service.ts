@@ -1,20 +1,33 @@
 import { Injectable } from '@angular/core';
-import { listadoTipos } from './listadoTipos'
+import { Apollo } from 'apollo-angular';
+import { GET_TYPES } from './graphql.operations';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+
+interface OrganizationType {
+  name: string;
+  id: string;
+}
+
+interface GetTypesResponse {
+  organizationTypes: {
+    items: OrganizationType[];
+  };
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class TipoService {
 
-  constructor() { }
+  constructor(private apollo: Apollo) { }
 
-  findAll() {
-    return listadoTipos;
-  }
-
-  findOne(key: string): string | undefined {
-    const tipo = listadoTipos.find(tipo => tipo.key === key);
-    return tipo ? tipo.name : undefined;
+  findAll(): Observable<OrganizationType[]> {
+    return this.apollo.query<GetTypesResponse>({
+      query: GET_TYPES
+    }).pipe(
+      map(result => result.data.organizationTypes.items)
+    );
   }
 
 }

@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter, Inject } from '@angular/core';
-import {MatButtonModule} from '@angular/material/button';
-import {MatCardModule} from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { Entidad } from '../services/listadoEntidades';
 import { RouterLink } from '@angular/router';
+import { Entidad } from '../services/organization.service';
 
 @Component({
   selector: 'app-card',
@@ -41,7 +41,7 @@ export class CardComponent {
       url: `./#${this.entidad?.nid}`,
       text: this.entidad?.nombre
     }
-    if(navigator.share)
+    if (navigator.share)
       navigator.share(link)
   }
 }

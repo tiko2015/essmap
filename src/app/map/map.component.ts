@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, ActivatedRoute } from '@angular/router';
 import { ViewportScroller, CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
@@ -9,14 +9,26 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 
-import { OrganizationService, Channel } from '../services/organization.service';
-import { ProvinceService } from '../services/province.service';
+import { OrganizationService, EntidadesList, Entidad, Entidades } from '../services/organization.service';
+import { ProvinceService, Provincia } from '../services/province.service';
 import { TipoService } from '../services/tipo.service';
-import { Provincia } from '../services/listadoProvincias';
-import { Entidad, Entidades } from '../services/listadoEntidades'
-import { Tipo } from '../services/listadoTipos';
 import { CardComponent } from '../card/card.component';
-import { Observable } from 'rxjs';
+
+export interface Tipo {
+  id: string;
+  name: string;
+}
+
+export interface Filters {
+  name: string;
+  nombre: string;
+  type: number | null;
+  provincia: string;
+  tipo: string;
+  lat: number;
+  lng: number;
+  take: number;
+}
 
 @Component({
   selector: 'app-map',
@@ -37,14 +49,17 @@ import { Observable } from 'rxjs';
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
-export class MapComponent {
+export class MapComponent implements OnInit {
   title = 'essapp';
-  filters = {
+  filters: Filters = {
+    name: '',
     nombre: '',
+    type: null,
     provincia: 'todos',
     tipo: 'todos',
     lat: -34.6037389,
     lng: -58.3815704,
+    take: 100,
   }
   nombre = '';
   organizationService = inject(OrganizationService);
@@ -54,7 +69,7 @@ export class MapComponent {
   filteredOrganizations: Entidades[] | [] = [];
   filterTotal = this.organizations.length;
   provincias: Provincia[] = this.provinceService.findAll();
-  tipos: Tipo[] = this.tipoService.findAll();
+  tipos: Tipo[] = [];
   options = {
     layers: [
       tileLayer("https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{y}.png", {
@@ -84,24 +99,38 @@ export class MapComponent {
 
   ngOnInit() {
 
-    this.organizationService.getOrganizations().subscribe((data: any) => {
-      this.organizations = data;
+    this.nid = this.activatedRoute.snapshot.fragment;
+    this.tipoService.findAll().subscribe(types => {
+      this.tipos = types;
+    }, error => {
+      console.error(error);
+    });
 
-      this.nid = this.activatedRoute.snapshot.fragment;
-      let anchor: Entidad | null = null;
-      if (this.nid) {
-        anchor = this.organizationService.findOne(data, this.nid);
+    let anchor: Entidad | null = null;
+    if (this.nid) {
+      this.organizationService.findOne(this.nid).subscribe(async (anchor: any) => {
         if (anchor) {
-          this.options.center = latLng(parseFloat(anchor.latitud), parseFloat(anchor.longitud))
-          this.filterOrganizations();
-          this.markerOnClick(this.nid, true);
+          this.options.center = latLng(anchor.latitud, anchor.longitud);
+          await this.filterOrganizations();
+
+
+          setTimeout(() => {
+            if (this.nid) {
+              this.markerOnClick(this.nid, true);
+            }
+          }, 500);
+
           return;
         }
-      }
+      });
 
+    } else {
       this.getUserLocation();
-    });
+      this.filterOrganizations();
+    }
+
   }
+
 
   touch($event: any) {
     console.log($event)
@@ -120,36 +149,38 @@ export class MapComponent {
   }
 
   setTipo(tipo: string) {
-    this.filters.tipo = tipo;
+    this.filters.type = tipo !== 'todos' ? parseInt(tipo) : null;
     this.filterOrganizations();
   }
 
   filterOrganizations() {
-    const data = this.organizations;
     this.reload = false;
     this.filters.lat = this.options.center.lat;
     this.filters.lng = this.options.center.lng;
 
-    const layers = this.organizationService.findAll(data, this.filters);
-    this.filteredOrganizations = layers.slice(0, 100);
-    this.filterTotal = layers.length;
+    this.organizationService.findAll(this.filters)
+      .subscribe((data: EntidadesList) => {
+        this.filteredOrganizations = data.items;
+        this.filterTotal = data.totalItems;
 
 
-    this.layers = this.filteredOrganizations.map(
-      (organization: Entidades) =>
-        marker([parseFloat(organization.node.latitud), parseFloat(organization.node.longitud)], {
-          title: organization.node.nid,
-          icon: icon({
-            iconSize: [25, 41],
-            iconAnchor: [13, 41],
-            iconUrl: `../assets/icon/icon_${organization.node.tipo}.png`,
-            shadowUrl: 'leaflet/marker-shadow.png',
-            popupAnchor: [0, -50]
-          })
-        })
-          .on('click', (e) => this.markerOnClick(organization.node.nid))
-          .bindPopup(organization.node.nombre)
-    );
+        this.layers = this.filteredOrganizations.map(
+          (organization: Entidades) =>
+            marker([parseFloat(organization.node.latitud), parseFloat(organization.node.longitud)], {
+              title: organization.node.nid,
+              icon: icon({
+                iconSize: [25, 41],
+                iconAnchor: [13, 41],
+                iconUrl: `../assets/icon/icon_${organization.node.tipo ? organization.node.tipo : 'cooperativas'}.png`,
+                shadowUrl: 'leaflet/marker-shadow.png',
+                popupAnchor: [0, -50]
+              })
+            })
+              .on('click', (e) => this.markerOnClick(organization.node.nid))
+              .bindPopup(organization.node.nombre)
+        );
+      });
+
 
 
     // para identificar mi localización
