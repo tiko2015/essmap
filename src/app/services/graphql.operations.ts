@@ -14,7 +14,6 @@ const GET_CHANNELS = gql`
                 id
                 fullName
                 location
-                defaultAddress
                 province
                 streetLine1
                 organization {
@@ -36,7 +35,6 @@ const GET_CHANNEL = gql`
         id
         fullName
         location
-        defaultAddress
         province
         streetLine1
         organization {
