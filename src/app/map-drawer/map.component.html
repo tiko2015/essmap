@@ -1,0 +1,78 @@
+<mat-drawer-container class="drawer-container">
+  <mat-drawer #drawer class="drawer-sidenav" mode="over" position="end">
+    <mat-list>
+      <mat-list-item>Item 1</mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>Item 2</mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>Item 3</mat-list-item>
+    </mat-list>
+  </mat-drawer>
+
+  <div class="drawer-content">
+
+    <form autocomplete="off" #searchForm="ngForm" (ngSubmit)="drawer.close()" (ngSubmit)="filterOrganizations()">
+      <div class="form-content">
+        <div class="form-content-search">
+          <label for="search"><img srcset="../assets/isologo.png" /></label>
+          <input id="search" class="form-search" type="text" [(ngModel)]="filters.nombre" name="nombre"
+            (ngModelChange)="filterOrganizations()" (focus)="verListado(false)">
+          <button type="submit" mat-icon-button class="form-submit"><mat-icon>search</mat-icon></button>
+        </div>
+        <mat-chip-listbox aria-label="Tipo de organización">
+          <mat-chip-option (click)="setTipo('todos')" [selected]="filters.tipo === 'todos'"
+            [class]="filters.tipo">Todos</mat-chip-option>
+
+          @for (chip of tipos; track chip) {
+          <mat-chip-option (click)="setTipo(chip.id)" [selected]="filters.tipo === chip.id"
+            [class]="chip.id">{{chip.name}}</mat-chip-option>
+          }
+        </mat-chip-listbox>
+      </div>
+
+      <button (click)="getUserLocation()" mat-icon-button class="form-location" type="button">
+        <mat-icon>location_searching</mat-icon>
+      </button>
+      <button (click)="drawer.toggle()" color="primary" mat-icon-button class="list-arrow" type="button">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <button (click)="verListado()" color="primary" mat-icon-button class="list-arrow" type="button">
+        @if(listadoActivo){<mat-icon>chevron_right</mat-icon>}
+        @else{<mat-icon>chevron_left</mat-icon>}
+      </button>
+    </form>
+
+    <div class="list" [class.hidden]="!listadoActivo">
+      <div class="list-content">
+        <mat-card class="list-title">
+          <mat-card-content>
+            @if (filters.nombre !== '') {
+            <h2>Resultados para: <em>{{filters.nombre}}</em></h2>
+            }
+            @if(filterTotal > 0) {
+            <h5>{{ filterTotal}} resultados</h5>
+            }
+            @else {
+            <h5>No se encontraron resultados</h5>
+            }
+          </mat-card-content>
+        </mat-card>
+        <div class="list-content-cards">
+          @for (organization of filteredOrganizations; track $index) {
+          <app-card (centerMap)="centerMap(organization.node)" [entidad]="organization.node"
+            [provincia]="getProvincia(organization.node.provincia)" [anchor]="anchor" />
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="map" [class.hidden]="listadoActivo" leaflet [leafletOptions]="options" [leafletLayers]="layers"
+      [(leafletCenter)]="options.center" [(leafletZoom)]="options.zoom" (leafletCenterChange)="centerChange()"
+      (leafletMapReady)="onMapReady($event)">
+    </div>
+
+    @if (reload && !listadoActivo) {
+    <button (click)="reloadOnClick()" mat-raised-button class="form-reload">Buscar en esta área</button>
+    }
+  </div>
+</mat-drawer-container>

@@ -1,26 +1,3 @@
-@use '@angular/material'as mat;
-
-mat-card {
-  @include mat.elevation(1);
-  height: 100%;
-}
-
-.card-wrapper {
-  height: 100%;
-}
-
-.card {
-  overflow: hidden;
-  word-break: break-word;
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-}
-
-.card-wrapper {
-  padding-top: 10px;
-}
-
 .header-image {
   background-size: cover;
 
@@ -43,20 +20,6 @@ mat-card {
   &.chasqui {
     background-image: url('/assets/icon/icon_chasqui.png');
   }
-}
-
-mat-card-title {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-h5 {
-  margin-bottom: 0;
-}
-
-.card-image {
-  padding: 16px;
-  display: block;
 }
 
 mat-card-actions {

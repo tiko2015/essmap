@@ -1,0 +1,29 @@
+@if(entidad) {
+<div [id]="entidad.nid">
+
+  <mat-card-header>
+    <div mat-card-avatar class="header-image" [class]="entidad.tipo"></div>
+    <mat-card-title>{{entidad.nombre}}</mat-card-title>
+    <mat-card-subtitle>{{entidad.subtitulo}}</mat-card-subtitle>
+  </mat-card-header>
+  @if(entidad.logo !== '') {<img class="card-image" mat-card-image [srcset]="entidad.logo" [alt]="entidad.nombre">}
+  <mat-card-content>
+    <h5>
+      {{ entidad.titulo_sede }}
+    </h5>
+    <p>{{ entidad.direccion }}<br />{{ provincia }}</p>
+  </mat-card-content>
+  <mat-card-actions>
+    <a mat-button target="_blank" (click)="openLink($event)">
+      @if(entidad.tipo ==='chasqui') {
+      Ir a la tienda
+      }
+      @else {
+      Ver detalle
+      }
+    </a>
+    <button mat-icon-button (click)="share()"><mat-icon>share</mat-icon></button>
+  </mat-card-actions>
+
+</div>
+}

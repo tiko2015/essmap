@@ -1,0 +1,125 @@
+@use '@angular/material' as mat;
+@import "../../breakpoints";
+
+.drawer-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  .drawer-content {
+    height: 100%;
+  }
+  .drawer-sidenav {
+    min-width: 300px;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+form {
+  display: flex;
+  position:absolute;
+  right: 20px;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  z-index: 1;
+  @include lg {
+    right: 330px;
+  }
+  label {
+    display: block;
+    left: 12px;
+    top: 6px;
+    width: 25px;
+    position: absolute;
+    img {
+      width: 100%;
+    }
+  }
+  .form-content-search {
+    font-size: 16px;
+    display: block;
+    border-radius: 25px;
+    background: #fff;
+    border: 1px solid #fff;
+    padding: 14px 40px;
+    margin-bottom: 5px;
+    width: 100%;
+    position: relative;
+    @include mat.elevation(1);
+    &:focus {
+      outline: none;
+      @include mat.elevation(4);
+    }
+  }
+  .form-search {
+    width: calc(100% - 25px);
+    font-size: 16px;
+    border: 1px solid #fff;
+    &:focus-visible {
+      outline: none;
+    }
+  }
+  .form-submit {
+    position: absolute;
+    right: 1px;
+    top: 1px;
+  }
+  .form-location {
+    background-color: #fff;
+    margin-left: 90px;
+    @include mat.elevation(1);
+  }
+}
+
+.form-reload {
+  position:fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  @include mat.elevation(1);
+  &:hover {
+    @include mat.elevation(4);
+  }
+}
+
+.map {
+  height: 100%;
+  z-index: 0;
+}
+.list {
+  margin-top: 150px;
+  .list-content {
+    margin: 0 10px;
+  }
+  .list-content-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    app-card {
+      flex: 1 1 calc(100% - 20px);
+      @include sm {
+        flex: 1 1 calc(50% - 20px);
+      }
+      align-items: stretch;
+      @include lg {
+        flex: 1 1 calc(25% - 20px);
+      }
+    }
+  }
+}
+
+.list-title {
+  background: rgba(103, 58, 183, 0.8);
+  color: #fff;
+}
+
+.list-arrow {
+  background-color: #fff;
+  margin-left: 10px;
+  @include mat.elevation(1);
+}

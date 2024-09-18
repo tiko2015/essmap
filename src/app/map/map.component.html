@@ -46,7 +46,7 @@
       </mat-card-content>
     </mat-card>
     @for (organization of filteredOrganizations; track $index) {
-    <app-card (centerMap)="centerMap($event)" [entidad]="organization.node"
+    <app-card (centerMap)="centerMap(organization.node)" [entidad]="organization.node"
       [provincia]="getProvincia(organization.node.provincia)" [anchor]="anchor" />
     }
   </div>

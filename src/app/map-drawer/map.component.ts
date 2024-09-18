@@ -1,18 +1,22 @@
-import { Component, inject, ChangeDetectorRef, OnInit, NgZone } from '@angular/core';
+import { Component, inject, OnInit, NgZone } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, ActivatedRoute } from '@angular/router';
 import { ViewportScroller, CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { latLng, tileLayer, marker, Marker, icon, circle, Circle } from 'leaflet';
+import { latLng, tileLayer, marker, icon, Map } from 'leaflet';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatListModule } from '@angular/material/list';
 import {
   MatBottomSheet,
   MatBottomSheetModule,
 } from '@angular/material/bottom-sheet';
 import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
+
 import { OrganizationService, EntidadesList, Entidad, Entidades } from '../services/organization.service';
 import { ProvinceService, Provincia } from '../services/province.service';
 import { TipoService } from '../services/tipo.service';
@@ -35,7 +39,7 @@ export interface Filters {
 }
 
 @Component({
-  selector: 'app-map',
+  selector: 'app-map-drawer',
   standalone: true,
   imports: [
     CommonModule,
@@ -46,14 +50,17 @@ export interface Filters {
     CardComponent,
     MatIconModule,
     MatButtonModule,
+    MatBottomSheetModule,
     MatCardModule,
     MatChipsModule,
-    MatBottomSheetModule,
+    MatSidenavModule,
+    MatDividerModule,
+    MatListModule,
   ],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
-export class MapComponent implements OnInit {
+export class MapDrawerComponent implements OnInit {
   title = 'essapp';
   filters: Filters = {
     name: '',
@@ -91,7 +98,6 @@ export class MapComponent implements OnInit {
   anchor: string = '';
   router = inject(Router);
   viewportScroller = inject(ViewportScroller);
-  cdr = inject(ChangeDetectorRef);
   reload = false;
   activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   nid: string | null = null;
@@ -101,9 +107,11 @@ export class MapComponent implements OnInit {
   private zone = inject(NgZone);
 
   openBottomSheet(organization: Entidad): void {
-    console.log("orga", organization)
     this._bottomSheet.open(BottomSheetComponent, {
-      data: { entidad: organization }
+      data: {
+        entidad: organization,
+        provincia: this.getProvincia(organization.provincia)
+      }
     });
   }
 
@@ -119,7 +127,6 @@ export class MapComponent implements OnInit {
       console.error(error);
     });
 
-    let anchor: Entidad | null = null;
     if (this.nid) {
       this.organizationService.findOne(this.nid).subscribe(async (anchor: any) => {
         if (anchor) {
@@ -142,11 +149,6 @@ export class MapComponent implements OnInit {
       this.filterOrganizations();
     }
 
-  }
-
-
-  touch($event: any) {
-    console.log($event)
   }
 
   getUserLocation() {
@@ -190,7 +192,7 @@ export class MapComponent implements OnInit {
               })
             })
               .on('click', (e) => this.markerOnClick(organization.node))
-              .bindPopup(organization.node.nombre)
+              .bindPopup(`${organization.node.nombre}`)
         );
       });
 
@@ -205,31 +207,21 @@ export class MapComponent implements OnInit {
   reloadOnClick() {
     this.filterOrganizations();
     this.viewportScroller.scrollToPosition([0, 0]);
-    this.router.navigateByUrl('/');
     this.anchor = '';
   }
 
   markerOnClick(organization: Entidad, fromList: boolean = false): void {
-    this.listadoActivo = true;
     this.anchor = organization.nid;
-    this.cdr.detectChanges();
     this.router.navigate([], { fragment: organization.nid });
     this.zone.run(() => {
       this.openBottomSheet(organization);
     });
-
     if (fromList) {
       const popup = this.layers.find(layer => layer.options.title === organization.nid);
       popup.openPopup();
       return;
     }
-    setTimeout(() => {
-      const element = document.getElementById(organization.nid);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      }
-    }, 500);
-
+    return;
   }
 
   verListado(listadoActivo = this.listadoActivo): void {
@@ -245,6 +237,7 @@ export class MapComponent implements OnInit {
   }
 
   centerMap(entidad: Entidad) {
+    this.verListado();
     setTimeout(() => {
       this.options.center = latLng(Number(entidad.latitud), Number(entidad.longitud));
     }, 500);
@@ -252,5 +245,12 @@ export class MapComponent implements OnInit {
       this.options.center = latLng(Number(entidad.latitud), Number(entidad.longitud));
       this.markerOnClick(entidad, true);
     }, 700);
+
+
+  }
+  onMapReady(map: Map): void {
+    setTimeout(() => {
+      map.invalidateSize();
+    });
   }
 }

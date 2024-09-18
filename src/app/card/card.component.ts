@@ -22,11 +22,7 @@ export class CardComponent {
     if (!this.entidad) {
       return;
     }
-    this.centerMap.emit({
-      id: this.entidad.nid,
-      lat: parseFloat(this.entidad.latitud),
-      lng: parseFloat(this.entidad.longitud)
-    });
+    this.centerMap.emit(this.entidad);
   }
 
   link() {
