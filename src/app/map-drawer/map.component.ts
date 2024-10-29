@@ -18,7 +18,6 @@ import {
 import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
 
 import { OrganizationService, EntidadesList, Entidad, Entidades } from '../services/organization.service';
-import { ProvinceService, Provincia } from '../services/province.service';
 import { TipoService } from '../services/tipo.service';
 import { CardComponent } from '../card/card.component';
 
@@ -74,12 +73,10 @@ export class MapDrawerComponent implements OnInit {
   }
   nombre = '';
   organizationService = inject(OrganizationService);
-  provinceService = inject(ProvinceService);
   tipoService = inject(TipoService);
   organizations: Entidades[] = [];
   filteredOrganizations: Entidades[] | [] = [];
   filterTotal = this.organizations.length;
-  provincias: Provincia[] = this.provinceService.findAll();
   tipos: Tipo[] = [];
   options = {
     layers: [
@@ -107,10 +104,11 @@ export class MapDrawerComponent implements OnInit {
   private zone = inject(NgZone);
 
   openBottomSheet(organization: Entidad): void {
+    console.log(organization)
+
     this._bottomSheet.open(BottomSheetComponent, {
       data: {
         entidad: organization,
-        provincia: this.getProvincia(organization.provincia)
       }
     });
   }
@@ -226,10 +224,6 @@ export class MapDrawerComponent implements OnInit {
 
   verListado(listadoActivo = this.listadoActivo): void {
     this.listadoActivo = listadoActivo ? false : true;
-  }
-
-  getProvincia(key: string) {
-    return this.provinceService.findOne(key);
   }
 
   centerChange(): void {

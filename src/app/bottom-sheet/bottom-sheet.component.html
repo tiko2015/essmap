@@ -11,17 +11,13 @@
     <h5>
       {{ entidad.titulo_sede }}
     </h5>
-    <p>{{ entidad.direccion }}<br />{{ provincia }}</p>
+    <p>{{ entidad.direccion }}<br />{{ entidad.provincia }}</p>
   </mat-card-content>
   <mat-card-actions>
-    <a mat-button target="_blank" (click)="openLink($event)">
-      @if(entidad.tipo ==='chasqui') {
-      Ir a la tienda
-      }
-      @else {
-      Ver detalle
-      }
-    </a>
+    <div>
+      <a mat-button target="_blank" (click)="openLink($event)" [href]="link()">Ver detalle</a>
+      <button mat-button (click)="openGoogleMaps(entidad.latitud, entidad.longitud)">Cómo llegar</button>
+    </div>
     <button mat-icon-button (click)="share()"><mat-icon>share</mat-icon></button>
   </mat-card-actions>
 

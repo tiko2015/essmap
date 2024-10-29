@@ -16,6 +16,7 @@ const GET_CHANNELS = gql`
                 location
                 province
                 streetLine1
+                streetLine2
                 organization {
                     code
                     name
@@ -37,12 +38,14 @@ const GET_CHANNEL = gql`
         location
         province
         streetLine1
+        streetLine2
         organization {
           code
           name
           description
           type {
               id
+              code
               name
           }
         }

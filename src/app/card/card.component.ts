@@ -14,7 +14,6 @@ import { Entidad } from '../services/organization.service';
 })
 export class CardComponent {
   @Input() entidad: Entidad | undefined;
-  @Input() provincia: string | undefined = '';
   @Input() anchor: string = '';
   @Output() centerMap = new EventEmitter<object>();
 

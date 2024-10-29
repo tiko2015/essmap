@@ -1,0 +1,26 @@
+.drawer-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  .drawer-sidenav {
+    min-width: 300px;
+  }
+}
+
+.button-nav {
+  position: fixed;
+  right: 10px;
+  top: 10px;
+  z-index: 100;
+  background-color: #fff;
+}
+
+::ng-deep .wrapper {
+  padding: 20px;
+  h3 {
+    font-size: 1.5em;
+    margin-right: 40px;
+  }
+}

@@ -14,7 +14,6 @@ import {
 } from '@angular/material/bottom-sheet';
 import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
 import { OrganizationService, EntidadesList, Entidad, Entidades } from '../services/organization.service';
-import { ProvinceService, Provincia } from '../services/province.service';
 import { TipoService } from '../services/tipo.service';
 import { CardComponent } from '../card/card.component';
 
@@ -67,12 +66,10 @@ export class MapComponent implements OnInit {
   }
   nombre = '';
   organizationService = inject(OrganizationService);
-  provinceService = inject(ProvinceService);
   tipoService = inject(TipoService);
   organizations: Entidades[] = [];
   filteredOrganizations: Entidades[] | [] = [];
   filterTotal = this.organizations.length;
-  provincias: Provincia[] = this.provinceService.findAll();
   tipos: Tipo[] = [];
   options = {
     layers: [
@@ -234,10 +231,6 @@ export class MapComponent implements OnInit {
 
   verListado(listadoActivo = this.listadoActivo): void {
     this.listadoActivo = listadoActivo ? false : true;
-  }
-
-  getProvincia(key: string) {
-    return this.provinceService.findOne(key);
   }
 
   centerChange(): void {

@@ -17,6 +17,7 @@ export interface Entidad {
   subtitulo: string
   titulo_sede: string
   distance?: number
+  externalId: string
 }
 export interface Entidades {
   node: Entidad
@@ -58,6 +59,7 @@ interface Channel {
   defaultAddress: string
   province: string
   streetLine1: string
+  streetLine2: string
   organization: Organization
 }
 
@@ -90,6 +92,7 @@ export class OrganizationService {
           logo: '',
           subtitulo: channel.organization.description,
           titulo_sede: channel.fullName,
+          externalId: channel.streetLine2
         };
         return entidad;
       })
@@ -97,7 +100,6 @@ export class OrganizationService {
   }
 
   getOrganizations(filters: Filters): Observable<EntidadesList> {
-    console.log(filters.type)
     return this.apollo.watchQuery({
       query: GET_CHANNELS,
       variables: {
@@ -114,6 +116,7 @@ export class OrganizationService {
           return {
             node: {
               nid: channel.id,
+              externalId: channel.streetLine2,
               nombre: channel.organization.name,
               descripcion: channel.organization.description,
               telefono: '',
