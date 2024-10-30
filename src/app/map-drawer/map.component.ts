@@ -15,6 +15,8 @@ import {
   MatBottomSheet,
   MatBottomSheetModule,
 } from '@angular/material/bottom-sheet';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
 
 import { OrganizationService, EntidadesList, Entidad, Entidades } from '../services/organization.service';
@@ -104,8 +106,6 @@ export class MapDrawerComponent implements OnInit {
   private zone = inject(NgZone);
 
   openBottomSheet(organization: Entidad): void {
-    console.log(organization)
-
     this._bottomSheet.open(BottomSheetComponent, {
       data: {
         entidad: organization,
@@ -117,47 +117,65 @@ export class MapDrawerComponent implements OnInit {
 
 
   ngOnInit() {
-
     this.nid = this.activatedRoute.snapshot.fragment;
-    this.tipoService.findAll().subscribe(types => {
-      this.tipos = types;
-    }, error => {
-      console.error(error);
-    });
+
+    this.tipoService.findAll().subscribe(
+      types => {
+        this.tipos = types;
+      },
+      error => {
+        console.error(error);
+      }
+    );
 
     if (this.nid) {
+      // Si `nid` está definido, obtenemos la organización y centramos el mapa en ella
       this.organizationService.findOne(this.nid).subscribe(async (anchor: any) => {
         if (anchor) {
           this.options.center = latLng(anchor.latitud, anchor.longitud);
-          await this.filterOrganizations();
-
+          this.filterOrganizations();
 
           setTimeout(() => {
             if (this.nid) {
               this.markerOnClick(anchor, true);
             }
           }, 500);
-
-          return;
         }
       });
-
     } else {
+      // Si `nid` no está definido, obtenemos la ubicación del usuario
       this.getUserLocation();
-      this.filterOrganizations();
     }
-
   }
 
-  getUserLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(position => {
+  async getUserLocation() {
+    if (Capacitor.getPlatform() === 'web') {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async position => {
+            this.options.center = latLng(position.coords.latitude, position.coords.longitude);
+            this.options.zoom = 15;
+            this.filterOrganizations(); // Solo llamado aquí
+          },
+          error => {
+            console.error('Error obteniendo la ubicación en la web:', error);
+            this.filterOrganizations(); // Llamado en caso de error
+          }
+        );
+      } else {
+        console.warn('Geolocalización no soportada en este navegador.');
+        this.filterOrganizations();
+      }
+    } else {
+      try {
+        const position = await Geolocation.getCurrentPosition();
         this.options.center = latLng(position.coords.latitude, position.coords.longitude);
         this.options.zoom = 15;
-        this.filterOrganizations();
-      });
-    } else {
-      this.filterOrganizations();
+        this.filterOrganizations(); // Solo llamado aquí
+      } catch (error) {
+        console.error('Error obteniendo la ubicación en el dispositivo:', error);
+        this.filterOrganizations(); // Llamado en caso de error
+      }
     }
   }
 
@@ -214,7 +232,7 @@ export class MapDrawerComponent implements OnInit {
     this.zone.run(() => {
       this.openBottomSheet(organization);
     });
-    if (fromList) {
+    if (fromList && this.layers.length > 0) {
       const popup = this.layers.find(layer => layer.options.title === organization.nid);
       popup.openPopup();
       return;
