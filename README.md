@@ -34,3 +34,11 @@ Corro `ng build` despues ingreso a `cd dist/essapp/browser/` y ejecuto `netlify 
 ### fuente de datos de EssApp V1
 
 https://essapp.coop/?q=essapp/indice-puntos/todos/todos/todos/todos
+
+### generar apk
+
+Usando [capacitor](https://capacitorjs.com/docs/basics/workflow)
+
+npx cap sync
+
+[build](https://dashboard.ionicframework.com/app/fd3acf44/build/builds)
