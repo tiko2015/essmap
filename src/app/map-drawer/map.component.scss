@@ -1,0 +1,166 @@
+@use '@angular/material' as mat;
+@import "../../breakpoints";
+
+.hidden {
+  display: none;
+}
+
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #0003;
+  animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  position:absolute;
+  right: 0;
+  top: 0;
+  left: 0;
+  padding: 10px 0;
+  z-index: 1;
+  &.listado {
+    background: #fff;
+    box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    z-index: 20;
+  }
+  .logo {
+    display: block;
+    background-color: #fff;
+    border-radius: 0 25px 25px 0 ;
+    left: 12px;
+    top: 6px;
+    width: 25px;
+    padding: 11px 20px 8px 13px;
+    margin: 0 10px 5px 0;
+    @include mat.elevation(4);
+
+    img {
+      width: 19px;
+    }
+  }
+  .form-nav {
+    display: flex;
+    flex-direction: row;
+    margin-right: 80px;
+  }
+  .form-content-search {
+    font-size: 16px;
+    display: block;
+    border-radius: 25px;
+    background: #fff;
+    border: 1px solid #fff;
+    padding: 14px 40px 14px 14px;
+    margin-bottom: 5px;
+    width: 100%;
+    position: relative;
+    @include mat.elevation(1);
+    &:focus {
+      outline: none;
+      @include mat.elevation(4);
+    }
+  }
+  .form-search {
+    width: calc(100% - 25px);
+    font-size: 16px;
+    border: 1px solid #fff;
+    &:focus-visible {
+      outline: none;
+    }
+  }
+  .form-submit {
+    position: absolute;
+    right: 1px;
+    top: 1px;
+  }
+  .form-location {
+    background-color: #fff;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    @include mat.elevation(1);
+  }
+}
+
+.form-reload {
+  position:fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  @include mat.elevation(1);
+  &:hover {
+    @include mat.elevation(4);
+  }
+}
+.count-result {
+  margin: 10px;
+  color: var(--mat-option-selected-state-label-text-color);
+  h2 {
+    margin-bottom: 0;
+    font-size: 1em;
+    line-height: 1;
+  }
+  h5 {
+    margin-bottom: 0;
+  }
+}
+.map {
+  height: 100vh;
+  z-index: 0;
+}
+.list {
+  margin-top: 0px;
+  .list-content {
+    margin: 0;
+  }
+  .list-content-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    app-card {
+      flex: 1 1 calc(100% - 20px);
+      ::ng-deep {
+        .card {
+          border-radius: 0;
+        }
+        .card-wrapper {
+          padding-top: 0;
+        }
+      }      
+    }
+  }
+}
+
+.list-arrow {
+  background-color: #fff;
+  margin-left: 10px;
+  @include mat.elevation(1);
+}
+
+
+::ng-deep mat-chip-listbox {
+  &.mdc-evolution-chip-set {
+    margin-left: 10px;
+    overflow: auto;
+  }
+  .mdc-evolution-chip-set__chips {
+    flex-wrap: nowrap;
+  }
+}

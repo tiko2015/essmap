@@ -1,0 +1,27 @@
+.header-image {
+  background-size: cover;
+
+  &.cooperativas {
+    background-image: url('/assets/icon/icon_cooperativas.png');
+  }
+
+  &.ferias {
+    background-image: url('/assets/icon/icon_ferias.png');
+  }
+
+  &.medios {
+    background-image: url('/assets/icon/icon_medios.png');
+  }
+
+  &.universidades {
+    background-image: url('/assets/icon/icon_universidades.png');
+  }
+
+  &.chasqui {
+    background-image: url('/assets/icon/icon_chasqui.png');
+  }
+}
+
+mat-card-actions {
+  justify-content: space-between;
+}

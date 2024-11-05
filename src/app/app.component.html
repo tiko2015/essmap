@@ -1,1 +1,17 @@
-<router-outlet />
+<mat-drawer-container class="drawer-container">
+  <mat-drawer #drawer class="drawer-sidenav" mode="over" position="end">
+    <mat-list>
+      <mat-list-item routerLink="/" (click)="drawer.close()">Inicio</mat-list-item>
+      <mat-list-item routerLink="/sobre-essapp" (click)="drawer.close()">Sobre EssApp</mat-list-item>
+      <mat-list-item routerLink="/terminos-y-condiciones" (click)="drawer.close()">Términos y
+        condiciones</mat-list-item>
+    </mat-list>
+  </mat-drawer>
+
+  <div class="drawer-content">
+    <button (click)="drawer.toggle()" color="primary" mat-icon-button class="button-nav" type="button">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <router-outlet />
+  </div>
+</mat-drawer-container>

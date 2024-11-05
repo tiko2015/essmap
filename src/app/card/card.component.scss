@@ -2,32 +2,37 @@
 
 mat-card {
   @include mat.elevation(1);
+  cursor: pointer;
+  &:hover {
+    background-color: #f1f1f1;
+  }
+  &:active {
+    background-color: #e5e5e5;
+  }
+}
+
+.card-wrapper {
+  height: 100%;
 }
 
 .card {
-  overflow: hidden;
   word-break: break-word;
-  opacity: 0.9;
+  display: flex;
 }
 
 .card-wrapper {
   padding-top: 10px;
-
-  &.active .card {
-    @include mat.elevation(8);
-    opacity: 1;
-  }
 }
 
 .header-image {
   background-size: cover;
 
-  &.cooperativa {
-    background-image: url('/assets/icon/icon_cooperativa.png');
+  &.cooperativas {
+    background-image: url('/assets/icon/icon_cooperativas.png');
   }
 
-  &.ferias_espacios {
-    background-image: url('/assets/icon/icon_ferias_espacios.png');
+  &.ferias {
+    background-image: url('/assets/icon/icon_ferias.png');
   }
 
   &.medios {
@@ -55,8 +60,4 @@ h5 {
 .card-image {
   padding: 16px;
   display: block;
-}
-
-mat-card-actions {
-  justify-content: space-between;
 }

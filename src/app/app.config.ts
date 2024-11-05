@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
         httpLink: HttpLink,
       ): ApolloClientOptions<unknown> => ({
         link: ApolloLink.from([
-          httpLink.create({ uri: myUrl }),
+          httpLink.create({ uri: myUrl, withCredentials: true }),
         ]),
         cache: new InMemoryCache(),
       }),

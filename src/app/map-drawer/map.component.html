@@ -1,0 +1,66 @@
+<form autocomplete="off" #searchForm="ngForm" (ngSubmit)="filterOrganizations()" [class.listado]="listadoActivo">
+  <div class="form-nav">
+    <div class="logo"><img srcset="../assets/isologo.png" /></div>
+    <div class="form-content-search">
+      <input id="search" class="form-search" type="search" [(ngModel)]="filters.nombre" name="nombre"
+        (ngModelChange)="filterOrganizations()" (focus)="verListado(false)">
+      <button type="submit" mat-icon-button class="form-submit"><mat-icon>search</mat-icon></button>
+    </div>
+
+    <button (click)="verListado()" color="primary" mat-icon-button class="list-arrow" type="button">
+      @if(listadoActivo){<mat-icon>map</mat-icon>}
+      @else{<mat-icon>view_list</mat-icon>}
+    </button>
+
+  </div>
+
+  <mat-chip-listbox aria-label="Tipo de organización">
+    <mat-chip-option (click)="setTipo('todos')" [selected]="filters.tipo === 'todos'"
+      [class]="filters.tipo">Todos</mat-chip-option>
+
+    @for (chip of tipos; track chip) {
+    <mat-chip-option (click)="setTipo(chip.id)" [selected]="filters.tipo === chip.id"
+      [class]="chip.id">{{chip.name}}</mat-chip-option>
+    }
+  </mat-chip-listbox>
+
+  <div class="count-result">
+    @if (filters.nombre !== '') {
+    <h2>Resultados para: <em>{{filters.nombre}}</em></h2>
+    }
+    @if(filterTotal > 0) {
+    <h5>{{ filterTotal}} resultados</h5>
+    }
+    @else {
+    <h5>No se encontraron resultados</h5>
+    }
+  </div>
+
+  <button (click)="getUserLocation()" mat-icon-button class="form-location" type="button">
+    <mat-icon>location_searching</mat-icon>
+  </button>
+
+</form>
+
+<div class="list" [class.hidden]="!listadoActivo">
+  <div class="list-content">
+    <div class="list-content-cards">
+      @for (organization of filteredOrganizations; track $index) {
+      <app-card (centerMap)="centerMap(organization.node)" [entidad]="organization.node" [anchor]="anchor" />
+      }
+    </div>
+  </div>
+</div>
+
+<div class="map" [class.hidden]="listadoActivo" leaflet [leafletOptions]="options" [leafletLayers]="layers"
+  [(leafletCenter)]="options.center" [(leafletZoom)]="options.zoom" (leafletCenterChange)="centerChange()"
+  (leafletMapReady)="onMapReady($event)">
+</div>
+
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner></mat-spinner>
+</div>
+
+@if (reload && !listadoActivo) {
+<button (click)="reloadOnClick()" mat-raised-button class="form-reload">Buscar en esta área</button>
+}
