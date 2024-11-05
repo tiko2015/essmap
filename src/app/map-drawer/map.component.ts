@@ -15,6 +15,9 @@ import {
   MatBottomSheet,
   MatBottomSheetModule,
 } from '@angular/material/bottom-sheet';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
@@ -57,6 +60,7 @@ export interface Filters {
     MatSidenavModule,
     MatDividerModule,
     MatListModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
@@ -91,7 +95,7 @@ export class MapDrawerComponent implements OnInit {
     center: latLng(this.filters.lat, this.filters.lng),
     attributionControl: false,
     zoomControl: false,
-    preferCanvas: true,
+    //preferCanvas: true,
   };
   layers: any[] = [];
   anchor: string = '';
@@ -101,9 +105,11 @@ export class MapDrawerComponent implements OnInit {
   activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   nid: string | null = null;
   listadoActivo: boolean = false;
+  isLoading = false;
 
   private _bottomSheet = inject(MatBottomSheet);
   private zone = inject(NgZone);
+  private _snackBar = inject(MatSnackBar);
 
   openBottomSheet(organization: Entidad): void {
     this._bottomSheet.open(BottomSheetComponent, {
@@ -174,6 +180,10 @@ export class MapDrawerComponent implements OnInit {
         this.filterOrganizations(); // Solo llamado aquí
       } catch (error) {
         console.error('Error obteniendo la ubicación en el dispositivo:', error);
+        this._snackBar.open('Error obteniendo la ubicación en el dispositivo', 'Cerrar', {
+          duration: 3000,  // La notificación se mostrará por 3 segundos
+          verticalPosition: 'top'  // Opcional: Posición en la parte superior de la pantalla
+        });
         this.filterOrganizations(); // Llamado en caso de error
       }
     }
@@ -186,6 +196,7 @@ export class MapDrawerComponent implements OnInit {
 
   filterOrganizations() {
     this.reload = false;
+    this.isLoading = true;
     this.filters.lat = this.options.center.lat;
     this.filters.lng = this.options.center.lng;
 
@@ -193,7 +204,6 @@ export class MapDrawerComponent implements OnInit {
       .subscribe((data: EntidadesList) => {
         this.filteredOrganizations = data.items;
         this.filterTotal = data.totalItems;
-
 
         this.layers = this.filteredOrganizations.map(
           (organization: Entidades) =>
@@ -210,9 +220,16 @@ export class MapDrawerComponent implements OnInit {
               .on('click', (e) => this.markerOnClick(organization.node))
               .bindPopup(`${organization.node.nombre}`)
         );
+        this.isLoading = false;
+
+      }, (error) => {
+        this.isLoading = false;  // Desactiva el loading en caso de error
+        console.error('Error al obtener las organizaciones', error);
+        this._snackBar.open('Error al obtener las organizaciones', 'Cerrar', {
+          duration: 3000,  // La notificación se mostrará por 3 segundos
+          verticalPosition: 'top'  // Opcional: Posición en la parte superior de la pantalla
+        });
       });
-
-
 
     // para identificar mi localización
     // if (navigator.geolocation) {

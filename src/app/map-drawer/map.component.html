@@ -57,6 +57,10 @@
   (leafletMapReady)="onMapReady($event)">
 </div>
 
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner></mat-spinner>
+</div>
+
 @if (reload && !listadoActivo) {
 <button (click)="reloadOnClick()" mat-raised-button class="form-reload">Buscar en esta área</button>
 }
