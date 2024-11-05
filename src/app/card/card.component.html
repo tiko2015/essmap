@@ -1,6 +1,6 @@
 @if(entidad) {
 <div class="card-wrapper" [id]="entidad.nid" [class.active]="anchor === entidad.nid">
-  <mat-card class="card">
+  <mat-card class="card" (click)="center()">
     <mat-card-header>
       <div mat-card-avatar class="header-image" [class]="entidad.tipo"></div>
       <mat-card-title>{{entidad.nombre}}</mat-card-title>
@@ -13,13 +13,6 @@
       </h5>
       <p>{{ entidad.direccion }}<br />{{ entidad.provincia }}</p>
     </mat-card-content>
-    <mat-card-actions>
-      <div>
-        <a mat-button target="_blank" [href]="link()">Ver detalle </a>
-        <button mat-button (click)="center()">Ver en el mapa</button>
-      </div>
-      <button mat-icon-button (click)="share()"><mat-icon>share</mat-icon></button>
-    </mat-card-actions>
   </mat-card>
 </div>
 }
