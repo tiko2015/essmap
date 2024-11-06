@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist/essapp/browser',
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 0,
       launchAutoHide: true,
       launchFadeOutDuration: 3000,
       backgroundColor: "#ffffffff",
