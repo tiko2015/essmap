@@ -1,14 +1,21 @@
 <mat-drawer-container class="drawer-container">
   <mat-drawer #drawer class="drawer-sidenav" mode="over" position="end">
     <mat-list>
-      <mat-list-item routerLink="/" (click)="drawer.close()">Inicio</mat-list-item>
-      <mat-list-item routerLink="/sobre-essapp" (click)="drawer.close()">Sobre EssApp</mat-list-item>
-      <mat-list-item routerLink="/terminos-y-condiciones" (click)="drawer.close()">Términos y
-        condiciones</mat-list-item>
+      <mat-action-list *ngFor="let link of menuLinks">
+        <button mat-list-item *ngIf="!link.external" routerLink="{{ link.path }}" (click)="drawer.close()">
+          {{ link.label }}
+        </button>
+        <button mat-list-item *ngIf="link.external">
+          <a [href]="link.path" target="_blank" (click)="drawer.close()">
+            {{ link.label }}
+          </a>
+        </button>
+      </mat-action-list>
     </mat-list>
   </mat-drawer>
 
   <div class="drawer-content">
+    <div class="logo"><img srcset="../assets/isologo.png" /></div>
     <button (click)="drawer.toggle()" color="primary" mat-icon-button class="button-nav" type="button">
       <mat-icon>menu</mat-icon>
     </button>

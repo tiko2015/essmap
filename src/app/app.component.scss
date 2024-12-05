@@ -1,26 +1,46 @@
+@use '@angular/material' as mat;
+
 .drawer-container {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  .drawer-sidenav {
-    min-width: 300px;
-  }
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    .drawer-sidenav {
+        min-width: 300px;
+    }
 }
 
 .button-nav {
-  position: fixed;
-  right: 10px;
-  top: 10px;
-  z-index: 100;
-  background-color: #fff;
+    position: fixed;
+    right: 10px;
+    top: 10px;
+    z-index: 100;
+    background-color: #fff;
+}
+
+.logo {
+    position: fixed;
+    z-index: 100;
+    display: block;
+    background-color: #fff;
+    border-radius: 0 25px 25px 0;
+    left: 0px;
+    top: 9px;
+    width: 25px;
+    padding: 11px 20px 8px 13px;
+    margin: 0 10px 5px 0;
+    @include mat.elevation(4);
+
+    img {
+        width: 19px;
+    }
 }
 
 ::ng-deep .wrapper {
-  padding: 20px;
-  h3 {
-    font-size: 1.5em;
-    margin-right: 40px;
-  }
+    padding: 20px;
+    h3 {
+        font-size: 1.5em;
+        margin-right: 40px;
+    }
 }
