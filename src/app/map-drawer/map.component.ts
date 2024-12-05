@@ -1,3 +1,5 @@
+import { filter } from 'rxjs/operators';
+import { provinces } from './../../../../huemul-postgis/src/import/listado-province';
 import { Component, inject, OnInit, NgZone } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, ActivatedRoute } from '@angular/router';
 import { ViewportScroller, CommonModule } from "@angular/common";
@@ -11,6 +13,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
+
 import {
   MatBottomSheet,
   MatBottomSheetModule,
@@ -25,6 +29,7 @@ import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
 import { OrganizationService, EntidadesList, Entidad, Entidades } from '../services/organization.service';
 import { TipoService } from '../services/tipo.service';
 import { CardComponent } from '../card/card.component';
+import { Province, ProvinceService } from '../services/province.service';
 
 export interface Tipo {
   id: string;
@@ -35,8 +40,7 @@ export interface Filters {
   name: string;
   nombre: string;
   type: number | null;
-  provincia: string;
-  tipo: string;
+  province: string | null;
   lat: number;
   lng: number;
   take: number;
@@ -61,6 +65,7 @@ export interface Filters {
     MatDividerModule,
     MatListModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
   ],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
@@ -71,19 +76,20 @@ export class MapDrawerComponent implements OnInit {
     name: '',
     nombre: '',
     type: null,
-    provincia: 'todos',
-    tipo: 'todos',
+    province: null,
     lat: -34.6037389,
     lng: -58.3815704,
-    take: 100,
+    take: 200,
   }
   nombre = '';
   organizationService = inject(OrganizationService);
   tipoService = inject(TipoService);
+  provinceService = inject(ProvinceService);
   organizations: Entidades[] = [];
   filteredOrganizations: Entidades[] | [] = [];
   filterTotal = this.organizations.length;
   tipos: Tipo[] = [];
+  provincias: Province[] = [];
   options = {
     layers: [
       tileLayer("https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{y}.png", {
@@ -133,6 +139,8 @@ export class MapDrawerComponent implements OnInit {
         console.error(error);
       }
     );
+
+    this.provincias = this.provinceService.findAll();
 
     if (this.nid) {
       // Si `nid` está definido, obtenemos la organización y centramos el mapa en ella
@@ -189,11 +197,6 @@ export class MapDrawerComponent implements OnInit {
     }
   }
 
-  setTipo(tipo: string) {
-    this.filters.type = tipo !== 'todos' ? parseInt(tipo) : null;
-    this.filterOrganizations();
-  }
-
   filterOrganizations() {
     this.reload = false;
     this.isLoading = true;
@@ -238,9 +241,12 @@ export class MapDrawerComponent implements OnInit {
   }
 
   reloadOnClick() {
-    this.filterOrganizations();
+    this.filters.nombre = '';
+    this.filters.type = null;
+    this.filters.province = null;
     this.viewportScroller.scrollToPosition([0, 0]);
     this.anchor = '';
+    this.filterOrganizations();
   }
 
   markerOnClick(organization: Entidad, fromList: boolean = false): void {

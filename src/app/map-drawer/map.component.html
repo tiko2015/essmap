@@ -1,6 +1,6 @@
 <form autocomplete="off" #searchForm="ngForm" (ngSubmit)="filterOrganizations()" [class.listado]="listadoActivo">
   <div class="form-nav">
-    <div class="logo"><img srcset="../assets/isologo.png" /></div>
+
     <div class="form-content-search">
       <input id="search" class="form-search" type="search" [(ngModel)]="filters.nombre" name="nombre"
         (ngModelChange)="filterOrganizations()" (focus)="verListado(false)">
@@ -13,17 +13,6 @@
     </button>
 
   </div>
-
-  <mat-chip-listbox aria-label="Tipo de organización">
-    <mat-chip-option (click)="setTipo('todos')" [selected]="filters.tipo === 'todos'"
-      [class]="filters.tipo">Todos</mat-chip-option>
-
-    @for (chip of tipos; track chip) {
-    <mat-chip-option (click)="setTipo(chip.id)" [selected]="filters.tipo === chip.id"
-      [class]="chip.id">{{chip.name}}</mat-chip-option>
-    }
-  </mat-chip-listbox>
-
   <div class="count-result">
     @if (filters.nombre !== '') {
     <h2>Resultados para: <em>{{filters.nombre}}</em></h2>
@@ -35,6 +24,33 @@
     <h5>No se encontraron resultados</h5>
     }
   </div>
+
+  <div class="filtros">
+    <h3>Filtrar por:</h3>
+    <div class="filtros-wrapper">
+      <mat-form-field class="filtros-item">
+        <mat-label>Tipo de organización</mat-label>
+        <mat-select [(ngModel)]="filters.type" (ngModelChange)="filterOrganizations()" name="types">
+          <mat-option value="">Todos</mat-option>
+          @for (chip of tipos; track chip) {
+          <mat-option [value]="chip.id">{{chip.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="filtros-item">
+        <mat-label>Provincias</mat-label>
+        <mat-select [(ngModel)]="filters.province" name="provincia" (ngModelChange)="filterOrganizations()">
+          <mat-option value="">Todas</mat-option>
+          @for (chip of provincias; track chip) {
+          <mat-option [value]="chip.name">{{chip.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+
 
   <button (click)="getUserLocation()" mat-icon-button class="form-location" type="button">
     <mat-icon>location_searching</mat-icon>

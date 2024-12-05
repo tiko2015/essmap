@@ -1,13 +1,21 @@
 import { gql } from "apollo-angular";
 
 const GET_CHANNELS = gql`
-    query getOrganizationByDistance($latitude: Float!, $longitude: Float!, $take: Float, $name: String, $type: ID) {
+    query getOrganizationByDistance(
+        $latitude: Float!, 
+        $longitude: Float!, 
+        $take: Float, 
+        $name: String, 
+        $type: ID,
+        $province: String,
+    ) {
         organizationAddressesByDistance(
             take: $take, 
             longitude: $longitude,
             latitude: $latitude,
           	name: $name,
-            type: $type
+            type: $type,
+            province: $province
         ) {
             totalItems
             items {
