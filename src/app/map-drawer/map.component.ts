@@ -5,6 +5,7 @@ import { RouterLink, RouterOutlet, Router, ActivatedRoute } from '@angular/route
 import { ViewportScroller, CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LatLngBounds } from 'leaflet';
 import { latLng, tileLayer, marker, icon, Map } from 'leaflet';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -197,7 +198,7 @@ export class MapDrawerComponent implements OnInit {
     }
   }
 
-  filterOrganizations() {
+  filterOrganizations(fitBounds: boolean = true) {
     this.reload = false;
     this.isLoading = true;
     this.filters.lat = this.options.center.lat;
@@ -225,6 +226,16 @@ export class MapDrawerComponent implements OnInit {
         );
         this.isLoading = false;
 
+        const coordinates = this.extractCoordinates(data.items);
+        if (coordinates.length > 0 && fitBounds) {
+          const bounds = this.calculateBounds(coordinates);
+          // Ajusta el mapa para mostrar todos los puntos
+          this.options.center = latLng(bounds.getCenter()); // Centro del mapa
+          setTimeout(() => {
+            this.layers[0]?._map?.fitBounds(bounds, { padding: [20, 20] });
+          }, 300);
+        }
+
       }, (error) => {
         this.isLoading = false;  // Desactiva el loading en caso de error
         console.error('Error al obtener las organizaciones', error);
@@ -246,7 +257,7 @@ export class MapDrawerComponent implements OnInit {
     this.filters.province = null;
     this.viewportScroller.scrollToPosition([0, 0]);
     this.anchor = '';
-    this.filterOrganizations();
+    this.filterOrganizations(false);
   }
 
   markerOnClick(organization: Entidad, fromList: boolean = false): void {
@@ -288,4 +299,20 @@ export class MapDrawerComponent implements OnInit {
       map.invalidateSize();
     });
   }
+
+  private calculateBounds(coords: [number, number][]): LatLngBounds {
+    const bounds = new LatLngBounds(coords);
+    return bounds;
+  }
+
+  private extractCoordinates(entidades: Entidades[]): [number, number][] {
+    return entidades
+      .map(entidad => {
+        const lat = parseFloat(entidad.node.latitud);
+        const lng = parseFloat(entidad.node.longitud);
+        return isNaN(lat) || isNaN(lng) ? null : [lat, lng];
+      })
+      .filter(coord => coord !== null) as [number, number][];
+  }
+
 }

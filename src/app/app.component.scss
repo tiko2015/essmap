@@ -44,3 +44,19 @@
         margin-right: 40px;
     }
 }
+
+::ng-deep button,
+::ng-deep a {
+    .mdc-list-item__primary-text {
+        display: flex;
+        text-align: center;
+        text-decoration: none;
+        color: #000;
+    }
+    &:hover .mdc-list-item__primary-text {
+        color: var(--mat-option-selected-state-label-text-color) !important;
+    }
+    mat-icon {
+        margin-right: 10px;
+    }
+}

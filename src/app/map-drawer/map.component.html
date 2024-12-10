@@ -3,7 +3,7 @@
 
     <div class="form-content-search">
       <input id="search" class="form-search" type="search" [(ngModel)]="filters.nombre" name="nombre"
-        (ngModelChange)="filterOrganizations()" (focus)="verListado(false)">
+        (ngModelChange)="filterOrganizations(false)" (ngModelChange)="centerChange()" (focus)="verListado(false)">
       <button type="submit" mat-icon-button class="form-submit"><mat-icon>search</mat-icon></button>
     </div>
 

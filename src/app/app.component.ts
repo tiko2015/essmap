@@ -21,15 +21,15 @@ export class AppComponent {
   }
 
   menuLinks = [
-    { label: 'Inicio', path: '/', external: false },
-    { label: 'Sobre ESSApp', path: '/sobre-essapp', external: false },
-    { label: 'Conocé la agenda', path: 'https://essapp.coop/agenda', external: true },
-    { label: 'Informate sobre la Economía Social y Solidaria', path: 'https://essapp.coop/noticias', external: true },
-    { label: 'Sumá tu organización', path: 'https://essapp.coop/sum%C3%A1-tu-proyecto', external: true },
-    { label: 'Términos y condiciones', path: '/terminos-y-condiciones', external: false },
-    { label: 'Seguinos en Facebook', path: 'https://www.facebook.com/mapaESSApp/', external: true },
-    { label: 'Seguinos en X', path: 'https://x.com/mapaESSApp/', external: true },
-    { label: 'Escribínos', path: 'mailto:info@essapp.coop', external: true },
+    { label: 'Inicio', path: '/', external: false, icon: 'home' },
+    { label: 'Sobre ESSApp', path: '/sobre-essapp', external: false, icon: 'location_on' },
+    { label: 'Conocé la agenda', path: 'https://essapp.coop/agenda', external: true, icon: 'calendar_month' },
+    { label: 'Informate sobre la ESS', path: 'https://essapp.coop/noticias', external: true, icon: 'info' },
+    { label: 'Sumá tu organización', path: 'https://essapp.coop/sum%C3%A1-tu-proyecto', external: true, icon: 'edit_square' },
+    { label: 'Términos y condiciones', path: '/terminos-y-condiciones', external: false, icon: 'assignment' },
+    { label: 'Seguinos en Facebook', path: 'https://www.facebook.com/ESSAppCOOP', external: true, icon: 'facebook' },
+    { label: 'Seguinos en Instagram', path: 'https://www.instagram.com/essappcoop/', external: true, icon: 'instagram' },
+    { label: 'Escribínos', path: 'mailto:info@essapp.coop', external: true, icon: 'mail' },
   ];
 
   async showSplash() {
