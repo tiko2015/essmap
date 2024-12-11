@@ -24,6 +24,7 @@ export class ProvinceService {
 }
 
 const listadoProvincias: Province[] = [
+  { id: 'B', name: 'Buenos Aires' },
   { id: 'K', name: 'Catamarca' },
   { id: 'H', name: 'Chaco' },
   { id: 'U', name: 'Chubut' },
@@ -38,7 +39,6 @@ const listadoProvincias: Province[] = [
   { id: 'M', name: 'Mendoza' },
   { id: 'N', name: 'Misiones' },
   { id: 'Q', name: 'Neuquén' },
-  { id: 'B', name: 'Pcia. de Buenos Aires' },
   { id: 'R', name: 'Río Negro' },
   { id: 'A', name: 'Salta' },
   { id: 'J', name: 'San Juan' },
