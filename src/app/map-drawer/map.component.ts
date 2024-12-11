@@ -1,5 +1,4 @@
 import { filter } from 'rxjs/operators';
-import { provinces } from './../../../../huemul-postgis/src/import/listado-province';
 import { Component, inject, OnInit, NgZone } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, ActivatedRoute } from '@angular/router';
 import { ViewportScroller, CommonModule } from "@angular/common";

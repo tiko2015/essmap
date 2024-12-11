@@ -1,5 +1,3 @@
-import { Province } from './../../../../huemul-postgis/src/plugins/organizations/ui/gql/graphql';
-import { provinces } from './../../../../huemul-postgis/src/import/listado-province';
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { GET_CHANNELS, GET_CHANNEL } from './graphql.operations';
