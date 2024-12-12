@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.essapp.app',
-  appName: 'essapp',
+  appName: 'ESSApp',
   webDir: 'dist/essapp/browser',
   plugins: {
     SplashScreen: {
