@@ -1,3 +1,5 @@
+import { Observable, Subject, of } from 'rxjs';
+import { catchError, tap, takeUntil } from 'rxjs/operators';
 import { Component, inject, OnInit, NgZone } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, ActivatedRoute } from '@angular/router';
 import { ViewportScroller, CommonModule } from "@angular/common";
@@ -86,6 +88,7 @@ export class MapDrawerComponent implements OnInit {
   provinceService = inject(ProvinceService);
   organizations: Entidades[] = [];
   filteredOrganizations: Entidades[] | [] = [];
+  filteredOrganizations$: Observable<EntidadesList> = of({ items: [], totalItems: 0 });
   filterTotal = this.organizations.length;
   tipos: Tipo[] = [];
   provincias: Province[] = [];
@@ -115,6 +118,7 @@ export class MapDrawerComponent implements OnInit {
   private _bottomSheet = inject(MatBottomSheet);
   private zone = inject(NgZone);
   private _snackBar = inject(MatSnackBar);
+  private destroy$ = new Subject<void>();
 
   private readonly typeColors: { [key: string]: { color: string, fillColor: string } } = {
     'cooperativas': { color: '#42b466', fillColor: '#42b466' },
@@ -122,6 +126,13 @@ export class MapDrawerComponent implements OnInit {
     'medios': { color: '#f47d30', fillColor: '#f47d30' },
     'universidades': { color: '#489dd1', fillColor: '#489dd1' }
   };
+
+  onFilterChange(fitBounds: boolean = true): void {
+    this.filterOrganizations$(fitBounds)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+  }
+
 
   openBottomSheet(organization: Entidad): void {
     this._bottomSheet.open(BottomSheetComponent, {
@@ -132,6 +143,11 @@ export class MapDrawerComponent implements OnInit {
   }
 
   constructor() { }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
 
   ngOnInit() {
@@ -153,11 +169,12 @@ export class MapDrawerComponent implements OnInit {
       this.organizationService.findOne(this.nid).subscribe(async (anchor: any) => {
         if (anchor) {
           this.options.center = latLng(anchor.latitud, anchor.longitud);
-          await this.filterOrganizations();
-
-          setTimeout(() => {
-            this.markerOnClick(anchor, true);
-          }, 2000);
+          this.filterOrganizations$()
+            .pipe(
+              takeUntil(this.destroy$),
+              tap(() => this.markerOnClick(anchor, true))
+            )
+            .subscribe();
         }
       });
     } else {
@@ -173,90 +190,107 @@ export class MapDrawerComponent implements OnInit {
           async position => {
             this.options.center = latLng(position.coords.latitude, position.coords.longitude);
             this.options.zoom = 15;
-            this.filterOrganizations(); // Solo llamado aquí
+            this.filterOrganizations$()
+              .pipe(takeUntil(this.destroy$))
+              .subscribe();
+
           },
           error => {
             console.error('Error obteniendo la ubicación en la web:', error);
-            this.filterOrganizations(); // Llamado en caso de error
+            this.filterOrganizations$()
+              .pipe(takeUntil(this.destroy$))
+              .subscribe();
+
           }
         );
       } else {
         console.warn('Geolocalización no soportada en este navegador.');
-        this.filterOrganizations();
+        this.filterOrganizations$()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe();
+
       }
     } else {
       try {
         const position = await Geolocation.getCurrentPosition();
         this.options.center = latLng(position.coords.latitude, position.coords.longitude);
         this.options.zoom = 15;
-        this.filterOrganizations(); // Solo llamado aquí
+        this.filterOrganizations$()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe();
+
       } catch (error) {
         console.error('Error obteniendo la ubicación en el dispositivo:', error);
         this._snackBar.open('Error obteniendo la ubicación en el dispositivo', 'Cerrar', {
           duration: 3000,  // La notificación se mostrará por 3 segundos
           verticalPosition: 'top'  // Opcional: Posición en la parte superior de la pantalla
         });
-        this.filterOrganizations(); // Llamado en caso de error
+        this.filterOrganizations$()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe();
+
       }
     }
   }
 
-  filterOrganizations(fitBounds: boolean = true) {
+  filterOrganizations$(fitBounds: boolean = true): Observable<EntidadesList> {
     this.reload = false;
     this.isLoading = true;
     this.filters.lat = this.options.center.lat;
     this.filters.lng = this.options.center.lng;
 
-    this.organizationService.findAll(this.filters)
-      .subscribe((data: EntidadesList) => {
+    return this.organizationService.findAll(this.filters).pipe(
+      tap((data: EntidadesList) => {
         this.filteredOrganizations = data.items;
         this.filterTotal = data.totalItems;
 
         this.layers = this.filteredOrganizations.map(
           (organization: Entidades) => {
-
             const colors = this.typeColors[organization.node.tipo] || {
               color: '#42b466',
               fillColor: '#3388ff'
             };
-            return circleMarker([parseFloat(organization.node.latitud), parseFloat(organization.node.longitud)], {
-              radius: 5,
-              color: colors.color,
-              fillColor: colors.fillColor,
-              fillOpacity: 0.5,
-              weight: 1,
-              opacity: 1,
-            })
-              .on('click', (e) => this.markerOnClick(organization.node))
+            return circleMarker(
+              [parseFloat(organization.node.latitud), parseFloat(organization.node.longitud)],
+              {
+                radius: 5,
+                color: colors.color,
+                fillColor: colors.fillColor,
+                fillOpacity: 0.5,
+                weight: 1,
+                opacity: 1,
+              }
+            ).on('click', () => this.markerOnClick(organization.node));
+          }
+        );
 
-          });
-
-        //para identificar mi localización
         if (navigator.geolocation) {
           this.layers.push(circle([this.filters.lat, this.filters.lng], { radius: 5 }));
         }
 
-        this.isLoading = false;
-
         const coordinates = this.extractCoordinates(data.items);
         if (coordinates.length > 0 && fitBounds) {
           const bounds = this.calculateBounds(coordinates);
-          // Ajusta el mapa para mostrar todos los puntos
-          this.options.center = latLng(bounds.getCenter()); // Centro del mapa
+          this.options.center = latLng(bounds.getCenter());
           setTimeout(() => {
             this.layers[0]?._map?.fitBounds(bounds, { padding: [20, 20] });
           }, 300);
         }
 
-      }, (error) => {
-        this.isLoading = false;  // Desactiva el loading en caso de error
+        this.isLoading = false;
+      }),
+      catchError(error => {
+        this.isLoading = false;
         console.error('Error al obtener las organizaciones', error);
         this._snackBar.open('Error al obtener las organizaciones', 'Cerrar', {
-          duration: 3000,  // La notificación se mostrará por 3 segundos
-          verticalPosition: 'top'  // Opcional: Posición en la parte superior de la pantalla
+          duration: 3000,
+          verticalPosition: 'top'
         });
-      });
+        return of({ items: [], totalItems: 0 }); // fallback
+      })
+    );
   }
+
 
   reloadOnClick() {
     this.filters.nombre = '';
@@ -264,7 +298,10 @@ export class MapDrawerComponent implements OnInit {
     this.filters.province = null;
     this.viewportScroller.scrollToPosition([0, 0]);
     this.anchor = '';
-    this.filterOrganizations(false);
+    this.filterOrganizations$(false)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+
   }
 
   markerOnClick(organization: Entidad, fromList: boolean = false): void {
@@ -283,7 +320,7 @@ export class MapDrawerComponent implements OnInit {
         shadowUrl: 'leaflet/marker-shadow.png',
         popupAnchor: [0, -50]
       })
-    });
+    }).on('click', () => this.markerOnClick(organization));
     this.layers.push(this.popMarker);
 
     this.zone.run(() => {
