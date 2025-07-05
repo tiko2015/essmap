@@ -8,7 +8,7 @@ export interface Entidad {
   nombre: string
   latitud: string
   longitud: string
-  tipo: string | null
+  tipo: string
   provincia: string
   descuentos: string
   ref_direccion: string

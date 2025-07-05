@@ -1,11 +1,10 @@
-import { filter } from 'rxjs/operators';
 import { Component, inject, OnInit, NgZone } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, ActivatedRoute } from '@angular/router';
 import { ViewportScroller, CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { LatLngBounds } from 'leaflet';
-import { latLng, tileLayer, marker, icon, Map } from 'leaflet';
+import { LatLngBounds, Marker } from 'leaflet';
+import { latLng, tileLayer, marker, icon, Map, circleMarker, circle } from 'leaflet';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -101,9 +100,9 @@ export class MapDrawerComponent implements OnInit {
     center: latLng(this.filters.lat, this.filters.lng),
     attributionControl: false,
     zoomControl: false,
-    //preferCanvas: true,
   };
   layers: any[] = [];
+  popMarker: Marker | null = null;
   anchor: string = '';
   router = inject(Router);
   viewportScroller = inject(ViewportScroller);
@@ -111,11 +110,18 @@ export class MapDrawerComponent implements OnInit {
   activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   nid: string | null = null;
   listadoActivo: boolean = false;
-  isLoading = false;
+  isLoading = true;
 
   private _bottomSheet = inject(MatBottomSheet);
   private zone = inject(NgZone);
   private _snackBar = inject(MatSnackBar);
+
+  private readonly typeColors: { [key: string]: { color: string, fillColor: string } } = {
+    'cooperativas': { color: '#42b466', fillColor: '#42b466' },
+    'ferias': { color: '#a92090', fillColor: '#a92090' },
+    'medios': { color: '#f47d30', fillColor: '#f47d30' },
+    'universidades': { color: '#489dd1', fillColor: '#489dd1' }
+  };
 
   openBottomSheet(organization: Entidad): void {
     this._bottomSheet.open(BottomSheetComponent, {
@@ -147,13 +153,11 @@ export class MapDrawerComponent implements OnInit {
       this.organizationService.findOne(this.nid).subscribe(async (anchor: any) => {
         if (anchor) {
           this.options.center = latLng(anchor.latitud, anchor.longitud);
-          this.filterOrganizations();
+          await this.filterOrganizations();
 
           setTimeout(() => {
-            if (this.nid) {
-              this.markerOnClick(anchor, true);
-            }
-          }, 500);
+            this.markerOnClick(anchor, true);
+          }, 2000);
         }
       });
     } else {
@@ -209,20 +213,29 @@ export class MapDrawerComponent implements OnInit {
         this.filterTotal = data.totalItems;
 
         this.layers = this.filteredOrganizations.map(
-          (organization: Entidades) =>
-            marker([parseFloat(organization.node.latitud), parseFloat(organization.node.longitud)], {
-              title: organization.node.nid,
-              icon: icon({
-                iconSize: [25, 41],
-                iconAnchor: [13, 41],
-                iconUrl: `../assets/icon/icon_${organization.node.tipo ? organization.node.tipo : 'cooperativas'}.png`,
-                shadowUrl: 'leaflet/marker-shadow.png',
-                popupAnchor: [0, -50]
-              })
+          (organization: Entidades) => {
+
+            const colors = this.typeColors[organization.node.tipo] || {
+              color: '#42b466',
+              fillColor: '#3388ff'
+            };
+            return circleMarker([parseFloat(organization.node.latitud), parseFloat(organization.node.longitud)], {
+              radius: 5,
+              color: colors.color,
+              fillColor: colors.fillColor,
+              fillOpacity: 0.5,
+              weight: 1,
+              opacity: 1,
             })
               .on('click', (e) => this.markerOnClick(organization.node))
-              .bindPopup(`${organization.node.nombre}`)
-        );
+
+          });
+
+        //para identificar mi localización
+        if (navigator.geolocation) {
+          this.layers.push(circle([this.filters.lat, this.filters.lng], { radius: 5 }));
+        }
+
         this.isLoading = false;
 
         const coordinates = this.extractCoordinates(data.items);
@@ -243,11 +256,6 @@ export class MapDrawerComponent implements OnInit {
           verticalPosition: 'top'  // Opcional: Posición en la parte superior de la pantalla
         });
       });
-
-    // para identificar mi localización
-    // if (navigator.geolocation) {
-    //   this.layers.push(circle([ this.filters.lat, this.filters.lng ], { radius: 100 }));
-    // }
   }
 
   reloadOnClick() {
@@ -262,6 +270,22 @@ export class MapDrawerComponent implements OnInit {
   markerOnClick(organization: Entidad, fromList: boolean = false): void {
     this.anchor = organization.nid;
     this.router.navigate([], { fragment: organization.nid });
+
+    if (this.popMarker) {
+      this.popMarker.remove();
+    }
+    this.popMarker = marker([parseFloat(organization.latitud), parseFloat(organization.longitud)], {
+      title: organization.nid,
+      icon: icon({
+        iconSize: [25, 41],
+        iconAnchor: [13, 41],
+        iconUrl: `../assets/icon/icon_${organization.tipo ? organization.tipo : 'cooperativas'}.png`,
+        shadowUrl: 'leaflet/marker-shadow.png',
+        popupAnchor: [0, -50]
+      })
+    });
+    this.layers.push(this.popMarker);
+
     this.zone.run(() => {
       this.openBottomSheet(organization);
     });
