@@ -27,6 +27,7 @@ export class AppComponent {
     { label: 'Informate sobre la ESS', path: 'https://essapp.coop/noticias', external: true, icon: 'info' },
     { label: 'Sumá tu organización', path: 'https://essapp.coop/sum%C3%A1-tu-proyecto', external: true, icon: 'edit_square' },
     { label: 'Términos y condiciones', path: '/terminos-y-condiciones', external: false, icon: 'assignment' },
+    { label: 'Política de privacidad', path: '/politica-privacidad', external: false, icon: 'assignment' },
     { label: 'Seguinos en Facebook', path: 'https://www.facebook.com/ESSAppCOOP', external: true, icon: 'facebook' },
     { label: 'Seguinos en Instagram', path: 'https://www.instagram.com/essappcoop/', external: true, icon: 'instagram' },
     { label: 'Escribínos', path: 'mailto:info@essapp.coop', external: true, icon: 'mail' },
