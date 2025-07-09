@@ -47,7 +47,7 @@ export class BottomSheetComponent {
   share() {
     const link = {
       title: this.entidad?.nombre,
-      url: `${window.location.origin}/#${this.entidad?.nid}`, // URL completa para que funcione tanto en web como en Android
+      url: `https://nuevo.essapp.coop/#${this.entidad?.nid}`,
       text: this.entidad?.nombre
     };
 

@@ -253,7 +253,7 @@ export class MapDrawerComponent implements OnInit {
             return circleMarker(
               [parseFloat(organization.node.latitud), parseFloat(organization.node.longitud)],
               {
-                radius: 5,
+                radius: 10,
                 color: colors.color,
                 fillColor: colors.fillColor,
                 fillOpacity: 0.5,
@@ -264,9 +264,9 @@ export class MapDrawerComponent implements OnInit {
           }
         );
 
-        if (navigator.geolocation) {
-          this.layers.push(circle([this.filters.lat, this.filters.lng], { radius: 5 }));
-        }
+        // if (navigator.geolocation) {
+        //   this.layers.push(circle([this.filters.lat, this.filters.lng], { radius: 5 }));
+        // }
 
         const coordinates = this.extractCoordinates(data.items);
         if (coordinates.length > 0 && fitBounds) {
