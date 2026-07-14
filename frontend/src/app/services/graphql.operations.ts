@@ -4,25 +4,32 @@ const GET_CHANNELS = gql`
     query getOrganizationByDistance(
         $latitude: Float!, 
         $longitude: Float!, 
-        $take: Float, 
+        $take: Int, 
         $name: String, 
-        $type: ID,
+        $type: String,
         $province: String,
     ) {
         organizationAddressesByDistance(
-            take: $take, 
+            options: { 
+                take: $take,
+                filter:  {
+                    organizationType: {eq:$type},
+                    organizationName: {contains:$name},
+                    province: {eq:$province},
+                }
+            }
             longitude: $longitude,
             latitude: $latitude,
-          	name: $name,
-            type: $type,
-            province: $province
         ) {
             totalItems
             items {
                 id
                 fullName
                 location
-                province
+                province {
+                    id
+                    code
+                }
                 streetLine1
                 streetLine2
                 organization {
@@ -44,7 +51,9 @@ const GET_CHANNEL = gql`
         id
         fullName
         location
-        province
+        province {
+            code
+        }
         streetLine1
         streetLine2
         organization {
@@ -62,8 +71,8 @@ const GET_CHANNEL = gql`
 `;
 
 const GET_TYPES = gql`
-    query getTypes {
-        organizationTypes {
+    query getTypes{
+        organizationTypes(options: {take: 25})  {
             items {
                 name
                 id

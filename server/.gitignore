@@ -1,0 +1,11 @@
+node_modules
+dist
+static/assets
+static/email/test-emails
+vendure-import-error.log
+.env
+.kiro
+src/import/images/*
+src/import/backups/*
+!src/import/images/.gitkeep
+!src/import/backups/.gitkeep

@@ -80,7 +80,7 @@ export class MapDrawerComponent implements OnInit {
     province: null,
     lat: -34.6037389,
     lng: -58.3815704,
-    take: 200,
+    take: 135,
   }
   nombre = '';
   organizationService = inject(OrganizationService);
