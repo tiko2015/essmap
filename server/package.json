@@ -1,0 +1,44 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "ts-node ./src/index.ts",
+    "dev:worker": "ts-node ./src/index-worker.ts",
+    "dev:dashboard": "vite --clearScreen false",
+    "dev": "concurrently --kill-others npm:dev:*",
+    "init:system": "ts-node ./src/import/scripts/init-system.ts",
+    "init:system:dry": "ts-node ./src/import/scripts/init-system.ts --dry-run",
+    "fetch:essapp": "ts-node ./src/import/scripts/fetch-essapp.ts",
+    "build": "tsc",
+    "build:dashboard": "vite build",
+    "start:server": "node ./dist/index.js",
+    "start:worker": "node ./dist/index-worker.js",
+    "start:dashboard": "npx serve -s dist/dashboard -l 5173",
+    "start": "concurrently npm:start:*",
+    "codegen": "graphql-codegen --config codegen.ts"
+  },
+  "dependencies": {
+    "@types/geojson": "^7946.0.14",
+    "@vendure/asset-server-plugin": "3.6.4",
+    "@vendure/core": "3.6.4",
+    "@vendure/dashboard": "3.6.4",
+    "@vendure/email-plugin": "3.6.4",
+    "@vendure/graphiql-plugin": "3.6.4",
+    "@vendure/job-queue-plugin": "3.6.4",
+    "dotenv": "17.4.2",
+    "geojson": "^0.5.0",
+    "pg": "8.12.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "5.0.2",
+    "@graphql-codegen/client-preset": "4.3.3",
+    "@graphql-codegen/typescript": "4.0.9",
+    "@types/pg": "^8.20.0",
+    "@vendure/cli": "3.6.4",
+    "@vendure/ui-devkit": "3.6.4",
+    "concurrently": "10.0.3",
+    "typescript": "5.8.2",
+    "vite": "7.3.5"
+  }
+}
