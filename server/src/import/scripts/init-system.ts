@@ -25,7 +25,7 @@ import { Country } from '@vendure/core/dist/entity/region/country.entity';
 import { Province } from '@vendure/core/dist/entity/region/province.entity';
 import { RegionTranslation } from '@vendure/core/dist/entity/region/region-translation.entity';
 import { config } from '../../vendure-config';
-import { initialData } from '../initial-data';
+import { initialData, categories, publicFacets } from '../initial-data';
 import { provinces } from '../listado-province';
 import { Organization } from '../../plugins/organizations/entities/organization.entity';
 import { OrganizationAddress } from '../../plugins/organizations/entities/organization-address.entity';
@@ -78,7 +78,7 @@ function getDbConfig() {
     return {
         host: process.env.DB_HOST || 'localhost',
         port: +(process.env.DB_PORT ?? '5432'),
-        database: process.env.DB_NAME || 'essapp',
+        database: process.env.DB_NAME || 'huemul',
         user: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'password',
     };
@@ -247,9 +247,78 @@ async function stagePopulateInitialData(app: any, ctx: RequestContext) {
     log('Default channel currency set to ARS');
 }
 
-// ── Stage 5: Import provinces ────────────────────────────
+// ── Stage 5: Create facets ───────────────────────────────
+async function stageCreateFacets(ctx: RequestContext, app: any) {
+    log('Stage 5: Creating facets');
+
+    const facetService = app.get(FacetService);
+    const facetValueService = app.get(FacetValueService);
+    const slugService = app.get(SlugService);
+
+    for (const cat of categories) {
+        const facetCode = await slugService.generate(ctx, {
+            value: cat.name,
+            entityName: 'Facet',
+        });
+        const facet = await facetService.create(ctx, {
+            code: facetCode,
+            isPrivate: true,
+            translations: [{ languageCode: LanguageCode.es, name: cat.name }],
+        });
+        let valueCount = 0;
+        for (const sub of cat.subcategories) {
+            const valueCode = await slugService.generate(ctx, {
+                value: sub,
+                entityName: 'FacetValue',
+            });
+            await facetValueService.create(ctx, facet, {
+                code: valueCode,
+                translations: [{ languageCode: LanguageCode.es, name: sub }],
+            });
+            valueCount++;
+        }
+        log(`  Created category facet: ${cat.name} (${valueCount} values)`);
+    }
+
+    for (const pf of publicFacets) {
+        const facetCode = await slugService.generate(ctx, {
+            value: pf.name,
+            entityName: 'Facet',
+        });
+        const facet = await facetService.create(ctx, {
+            code: facetCode,
+            isPrivate: false,
+            translations: [{ languageCode: LanguageCode.es, name: pf.name }],
+        });
+        let valueCount = 0;
+        for (const sub of pf.subcategories) {
+            const valueCode = await slugService.generate(ctx, {
+                value: sub,
+                entityName: 'FacetValue',
+            });
+            await facetValueService.create(ctx, facet, {
+                code: valueCode,
+                translations: [{ languageCode: LanguageCode.es, name: sub }],
+            });
+            valueCount++;
+        }
+        log(`  Created public facet: ${pf.name} (${valueCount} values)`);
+    }
+}
+
+// ── Stage 6: Create collections ──────────────────────────
+async function stageCreateCollections(app: any) {
+    log('Stage 6: Creating collections');
+
+    const populator = app.get(Populator);
+    await populator.populateCollections(initialData);
+
+    log('Collections created');
+}
+
+// ── Stage 7: Import provinces ────────────────────────────
 async function stageImportProvinces(ctx: RequestContext, app: any) {
-    log('Stage 5: Importing provinces');
+    log('Stage 7: Importing provinces');
 
     const connection = app.get(TransactionalConnection);
     const countryRepo = connection.getRepository(ctx, Country);
@@ -396,25 +465,36 @@ async function stageImportEssApp(ctx: RequestContext, app: any) {
 
     const argentina = await connection.getRepository(ctx, Country).findOne({ where: { code: 'AR' } });
 
-    // ── Pass 1: Create organizations ─────────────────────
-    const nidToOrg = new Map<string, Organization>();
+    // ── Pass 1: Create organizations and addresses ─────
+    // Cache liviana: code → { id, defaultAddressId }. 
+    // Evita cargar la entidad Organization con todas sus relaciones eager.
+    const orgCache = new Map<string, { id: string; defaultAddressId: string | null }>();
+    const nidToOrgId = new Map<string, string>();
     let orgCount = 0;
+    let addressCount = 0;
     let skippedOrgs = 0;
 
+    // Precargar orgs existentes
+    {
+        const rows: any[] = await connection.rawConnection.query(
+            `SELECT "id", "code", "defaultAddressId" FROM "public"."organization"`,
+        );
+        for (const row of rows) {
+            orgCache.set(row.code, { id: row.id, defaultAddressId: row.defaultAddressId });
+        }
+        log(`Found ${orgCache.size} existing organizations`);
+    }
+
+    let processed = 0;
+    let lastLog = Date.now();
     for (const { node: entidad } of entities) {
+        processed++;
         let tipo = entidad.tipo;
         if (tipo === 'cooperativa') tipo = 'cooperativas';
         if (tipo === 'ferias_espacios') tipo = 'ferias';
 
         const code = slugify(entidad.nombre || '');
         if (!code) { skippedOrgs++; continue; }
-
-        const existingOrg = await organizationRepo.findOne({ where: { code } });
-        if (existingOrg) {
-            nidToOrg.set(entidad.nid, existingOrg);
-            skippedOrgs++;
-            continue;
-        }
 
         // Resolve province code (from list or detail)
         let provinceCode = entidad.provincia;
@@ -431,39 +511,72 @@ async function stageImportEssApp(ctx: RequestContext, app: any) {
         const typeEntity = organizationTypes.find((t: OrganizationType) => t.code === tipo);
         if (!typeEntity) { skippedOrgs++; continue; }
 
-        // Build description from detalle + rubros
-        const rubros = parseRubros(entidad.rubro);
-        let description = entidad.detalle || entidad.subtitulo || '';
-        if (rubros.length > 0 && description) {
-            description = `Rubros: ${rubros.join(', ')}\n\n${description}`;
-        } else if (rubros.length > 0) {
-            description = `Rubros: ${rubros.join(', ')}`;
+        let cached = orgCache.get(code);
+        const isNewOrg = !cached;
+
+        if (isNewOrg) {
+            const rubros = parseRubros(entidad.rubro);
+            let description = entidad.detalle || entidad.subtitulo || '';
+            if (rubros.length > 0 && description) {
+                description = `Rubros: ${rubros.join(', ')}\n\n${description}`;
+            } else if (rubros.length > 0) {
+                description = `Rubros: ${rubros.join(', ')}`;
+            }
+
+            const linksRRSS: string[] = [];
+            if (entidad.web) linksRRSS.push(entidad.web);
+
+            const rubroNames = parseRubros(entidad.rubro);
+            const orgBranches = rubroNames
+                .map(name => rubroToBranch.get(name))
+                .filter(Boolean) as OrganizationBranch[];
+
+            const org = await organizationRepo.save(
+                organizationRepo.create({
+                    code,
+                    name: entidad.nombre || '',
+                    enabled: true,
+                    description,
+                    email: '',
+                    type: typeEntity,
+                    linksRRSS: linksRRSS.length > 0 ? linksRRSS : undefined,
+                    branches: orgBranches.length > 0 ? orgBranches : undefined,
+                })
+            );
+            cached = { id: org.id as string, defaultAddressId: null };
+            orgCache.set(code, cached);
+            orgCount++;
+
+            // Logo only for new orgs
+            const logoUrl = entidad.logoDetail?.src || entidad.logo;
+            if (logoUrl && logoUrl.trim() !== '' && logoUrl.startsWith('http')) {
+                try {
+                    const ext = getImageExtension(logoUrl);
+                    const localPath = path.resolve(IMPORT_DIR, 'images', `${code}.${ext}`);
+                    if (!fs.existsSync(localPath)) {
+                        await downloadImage(logoUrl, localPath);
+                    }
+                    const assetResult = await assetService.createFromFileStream(
+                        fs.createReadStream(localPath), ctx
+                    );
+                    if ('id' in assetResult) {
+                        await assetService.assignToChannel(ctx, {
+                            assetIds: [assetResult.id], channelId: 1,
+                        });
+                        org.logo = assetResult;
+                        await organizationRepo.save(org);
+                    }
+                } catch (err) {
+                    console.error(`    Logo error for ${entidad.nombre}:`, err instanceof Error ? err.message : err);
+                }
+            }
         }
 
-        // Build linksRRSS
-        const linksRRSS: string[] = [];
-        if (entidad.web) linksRRSS.push(entidad.web);
+        const orgId = cached!.id;
 
-        const rubroNames = parseRubros(entidad.rubro);
-        const orgBranches = rubroNames
-            .map(name => rubroToBranch.get(name))
-            .filter(Boolean) as OrganizationBranch[];
-
-        const org = await organizationRepo.save(
-            organizationRepo.create({
-                code,
-                name: entidad.nombre || '',
-                enabled: true,
-                description,
-                email: '',
-                type: typeEntity,
-                linksRRSS: linksRRSS.length > 0 ? linksRRSS : undefined,
-                branches: orgBranches.length > 0 ? orgBranches : undefined,
-            })
-        );
-
-        // Build address from detail fields (fallback to list fields)
+        // Crear dirección usando un stub de Organization (solo el ID)
         const streetLine1 = entidad.calleCompleta || entidad.direccion || '';
+        const addrStub = { id: orgId } as Organization;
         const address = await addressRepo.save(
             addressRepo.create({
                 fullName: entidad.titulo_sede || '',
@@ -474,7 +587,7 @@ async function stageImportEssApp(ctx: RequestContext, app: any) {
                 country: argentina,
                 postalCode: entidad.codPostal || '',
                 phoneNumber: entidad.telefono || '',
-                organization: org,
+                organization: addrStub,
                 location: {
                     type: 'Point',
                     coordinates: [
@@ -484,66 +597,50 @@ async function stageImportEssApp(ctx: RequestContext, app: any) {
                 } as any,
             })
         );
+        addressCount++;
 
-        org.defaultAddress = address;
-        await organizationRepo.save(org);
-        nidToOrg.set(entidad.nid, org);
-        orgCount++;
+        // Set defaultAddress only for the first address (raw SQL)
+        if (!cached!.defaultAddressId) {
+            await connection.rawConnection.query(
+                `UPDATE "public"."organization" SET "defaultAddressId" = $1 WHERE "id" = $2`,
+                [address.id, orgId],
+            );
+            cached!.defaultAddressId = address.id as string;
+        }
 
-        // Logo from detail (preferred) or list (skip Drupal internal URIs)
-        const logoUrl = entidad.logoDetail?.src || entidad.logo;
-        if (logoUrl && logoUrl.trim() !== '' && logoUrl.startsWith('http')) {
-            try {
-                const ext = getImageExtension(logoUrl);
-                const localPath = path.resolve(IMPORT_DIR, 'images', `${code}.${ext}`);
+        nidToOrgId.set(entidad.nid, orgId);
 
-                if (!fs.existsSync(localPath)) {
-                    await downloadImage(logoUrl, localPath);
-                }
-
-                const assetResult = await assetService.createFromFileStream(
-                    fs.createReadStream(localPath),
-                    ctx
-                );
-
-                if ('id' in assetResult) {
-                    await assetService.assignToChannel(ctx, {
-                        assetIds: [assetResult.id],
-                        channelId: 1,
-                    });
-                    org.logo = assetResult;
-                    await organizationRepo.save(org);
-                }
-            } catch (err) {
-                console.error(`    Logo error for ${entidad.nombre}:`, err instanceof Error ? err.message : err);
-            }
+        // Progress cada 500 entidades o 5 segundos
+        const now = Date.now();
+        if (processed % 500 === 0 || now - lastLog > 5000) {
+            log(`  ${processed}/${entities.length} entities | ${orgCount} orgs | ${addressCount} addresses`);
+            lastLog = now;
         }
     }
 
-    log(`Pass 1: ${orgCount} organizations created, ${skippedOrgs} skipped`);
+    log(`Pass 1: ${orgCount} organizations created, ${addressCount} addresses, ${skippedOrgs} entities skipped`);
 
-    // ── Pass 2: Link affiliatedWith ──────────────────────
+    // ── Pass 2: Link affiliatedWith via join table ──────
     let linkedCount = 0;
     for (const { node: entidad } of entities) {
         const related = parseEntidadesRel(entidad.entidadesRel);
         if (related.length === 0) continue;
 
-        const org = nidToOrg.get(entidad.nid);
-        if (!org) continue;
+        const orgId = nidToOrgId.get(entidad.nid);
+        if (!orgId) continue;
 
         for (const rel of related) {
-            const relatedOrg = nidToOrg.get(rel.nid);
-            if (relatedOrg && relatedOrg.id !== org.id) {
-                if (!org.affiliatedWith) org.affiliatedWith = [];
-                if (!org.affiliatedWith.some(o => o.id === relatedOrg.id)) {
-                    org.affiliatedWith.push(relatedOrg);
-                    linkedCount++;
-                }
+            const relOrgId = nidToOrgId.get(rel.nid);
+            if (relOrgId && relOrgId !== orgId) {
+                await connection.rawConnection
+                    .createQueryBuilder()
+                    .insert()
+                    .into('organization_affiliated_with_organization')
+                    .values({ organizationId_1: orgId, organizationId_2: relOrgId })
+                    .orIgnore()
+                    .execute();
+                linkedCount++;
             }
-        }
-
-        if (org.affiliatedWith && org.affiliatedWith.length > 0) {
-            await organizationRepo.save(org);
         }
     }
 
@@ -578,10 +675,16 @@ async function main() {
     // Stage 4: Populate initial data (countries, zones, tax rates, roles)
     await stagePopulateInitialData(app, ctx);
 
-    // Stage 5: Import provinces
+    // Stage 5: Create facets
+    await stageCreateFacets(ctx, app);
+
+    // Stage 6: Create collections
+    await stageCreateCollections(app);
+
+    // Stage 7: Import provinces
     await stageImportProvinces(ctx, app);
 
-    // Stage 6: Import EssApp entities
+    // Stage 8: Import EssApp entities
     await stageImportEssApp(ctx, app);
 
     // Done
