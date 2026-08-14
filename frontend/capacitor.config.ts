@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.essapp.app',
+  appId: 'essapp.coop',
   appName: 'ESSApp',
   webDir: 'dist/essapp/browser',
   plugins: {
