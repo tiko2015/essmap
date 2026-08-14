@@ -1,4 +1,4 @@
-package com.essapp.app;
+package essapp.coop;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.essapp.app"
+    namespace "essapp.coop"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.essapp.app"
+        applicationId "essapp.coop"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 24
